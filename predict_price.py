@@ -36,7 +36,9 @@ while market_open.text == "Market open":
     if len(data) == 8:
         df.loc[len(df.index)] = data
         data.pop(0)
-    print(df)
+        print(df)
+        if len(df) == 50:
+            df.to_excel('dataFrame.xlsx', index=False)
     time.sleep(5)
 
  
