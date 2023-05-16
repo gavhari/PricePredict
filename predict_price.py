@@ -2,7 +2,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
+import sys
 #import tensorflow as tf
 #import numpy as np
 import pandas as pd
@@ -12,33 +13,42 @@ import time
 symbol = "EURUSD"
 url = f"https://www.tradingview.com/symbols/{symbol}"
 
-xpath = {
-    'market_status':'//*[@id="js-category-content"]/div[1]/div[1]/div/div/div/div[2]/button[4]/span/span[2]',
-    'stock_price':'//*[@id="js-category-content"]/div[1]/div[1]/div/div/div/div[3]/div[1]/div/div[1]/span[1]'
-}
+data = []
+df = pd.DataFrame(columns=['p1','p2','p3','p4','p5','p6','p7','p8'])
 
-driver = webdriver.Chrome()
+driver = webdriver.Chrome('PricePredict/chromedriver')
 driver.get(url)
 
 wait = WebDriverWait(driver,10)
-wait.until(EC.presence_of_element_located((By.XPATH, xpath['market_status'])))
-
-market_open = driver.find_element(By.XPATH, xpath['market_status'])
-if market_open.text == "Market open":
-    print("Market is open")
-
-data = []
-df = pd.DataFrame(columns=['price1','price2','price3','price4','price5','price6','price7','price8'])
-
-while market_open.text == "Market open":
-    stock_price = driver.find_element(By.XPATH, xpath['stock_price'])
-    data.append(float(stock_price.text))
+try:
+    wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'content-VzJVlozY')))
+    wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'text-VzJVlozY')))
+    try:
+        market_open = driver.find_element(By.XPATH, "//*[text()='Market open']")
+        print(u'\u2713' + " Market open")
+    except NoSuchElementException:
+        print(u'\u2717' + " Tidak menemukan status pasar")
+        driver.quit()
+        sys.exit()
+    wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'last-JWoJqCpY')))
+    print(u'\u2713' + " Harga ditemukan")
+except TimeoutException:
+    print("u'\u2717' + Status market atau harga pasar tidak ditemukan ")
+    driver.quit()
+    
+while True:
+    try:
+        harga_pasar = driver.find_element(By.CLASS_NAME, 'last-JWoJqCpY')
+    except NoSuchElementException:
+        print(u'\u2717' + ' Harga pasar tidak ditemukan')
+        break
+    data.append(float(harga_pasar.text))
     if len(data) == 8:
-        df.loc[len(df.index)] = data
+        df.loc[len(df.index),:] = data
         data.pop(0)
-        print(df)
-        if len(df) == 50:
+        if len(df) > 0:
+            print(df)
             df.to_excel('dataFrame.xlsx', index=False)
-    time.sleep(5)
-
+    time.sleep(60)
+    
  
