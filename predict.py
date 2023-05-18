@@ -4,21 +4,24 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 import sys
-#import tensorflow as tf
-#import numpy as np
+import tensorflow as tf
+import numpy as np
 import pandas as pd
 import requests
 import time
+import matplotlib.pyplot as plt
+
+loaded_model = tf.keras.models.load_model('/home/gabe/DeepLearningProject/PricePredict/model.h5')
 
 symbol = "EURUSD"
 url = f"https://www.tradingview.com/symbols/{symbol}"
 
-data_collect = []
-df = pd.DataFrame(columns=['sel1','julbe1','sel2','julbe2','sel3','julbe3','sel4','julbe4','sel5','julbe5','sel6','julb6','aksi'])
+data = []
+df = pd.DataFrame(columns=['p1','p2','p3','p4','p5','p6','p7','p8'])
 
 driver = webdriver.Chrome('PricePredict/chromedriver')
 driver.get(url)
-
+harga_sebelumnya = None
 wait = WebDriverWait(driver,10)
 try:
     wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'content-VzJVlozY')))
@@ -35,44 +38,23 @@ try:
 except TimeoutException:
     print("u'\u2717' + Status market atau harga pasar tidak ditemukan ")
     driver.quit()
-    
+
 while True:
     try:
         harga_pasar = driver.find_element(By.CLASS_NAME, 'last-JWoJqCpY')
+        harga_pasar = float(harga_pasar.text)
     except NoSuchElementException:
         print(u'\u2717' + ' Harga pasar tidak ditemukan')
         break
-    data_collect.append(float(harga_pasar.text))
-    if len(data_collect) == 8:
-        data_olah = []
-        for i in range(len(data_collect)):
-            if i<6:
-                selisih = data_collect[i+1] - data_collect[i]
-                posneg = None
-                if selisih > 0:
-                    posneg = 1
-                else:
-                    posneg = 0
-                data_olah.append(selisih)
-                data_olah.append(posneg)
-            elif i==6:
-                if data_collect[i+1] - data_collect[i] > 0:
-                    data_olah.append(1)
-                else:
-                    data_olah.append(0)
-        df.loc[len(df),:] = data_olah
-        data_collect.pop(0)
-    print(df)
-    if len(df) > 500:
-        df.to_excel('dataFrame.xlsx', index=False)
-    time.sleep(60)
-    # data.append(float(harga_pasar.text))
-    # if len(data) == 8:
-    #     df.loc[len(df.index),:] = data
-    #     data.pop(0)
-    #     if len(df) > 500:
-    #         print(df)
-    #         df.to_excel('dataFrame.xlsx', index=False)
-    # time.sleep(60)
-    
- 
+    data.append(harga_pasar)
+    if len(data) == 7:
+        data_np = np.array(data).reshape(1,7)
+        data.pop(0)
+        prediksi = loaded_model.predict(data_np)
+        print(f"Harga pasar saat ini : {harga_pasar}")
+        print(f"Harga prediksi : {prediksi}")
+        print(f"Harga sebelumnya : {harga_sebelumnya}")
+        if harga_pasar - prediksi > -0.001:
+            print("NAIK!!!!!")
+        harga_sebelumnya = prediksi
+    time.sleep(1)
