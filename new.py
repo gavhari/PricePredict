@@ -44,7 +44,7 @@ try:
     wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'last-JWoJqCpY')))
     print(u'\u2713' + " Harga ditemukan")
 except TimeoutException:
-    print("u'\u2717' + Status market atau harga pasar tidak ditemukan ")
+    print(u'\u2717' + "Status market atau harga pasar tidak ditemukan ")
     driver.quit()
     
 def getprice(sleep_time=5):
