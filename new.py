@@ -93,11 +93,11 @@ while 1:
                 if first_predict:
                     if pre_price[0] - inputlist[-1] > 0:
                         print(f"{bcolors.OKGREEN} \u2191", end="")
-                        print(f"{bcolors.BOLD}[", int((pre_price[0]-price)*1000000/price))
+                        print(f"{bcolors.BOLD}[", int((pre_price[0]-price)*1000000/price), end=" ")
                         print(f"{bcolors.OKCYAN} Actual: ", price, end="")
                     elif pre_price[0] - inputlist[-1] == 0:
                         print(f"{bcolors.HEADER} \u2022", end="")
-                        print(f"{bcolors.BOLD}[", int((pre_price[0] - price) * 1000000/price))
+                        print(f"{bcolors.BOLD}[", int((pre_price[0] - price) * 1000000/price), end=" ")
                         print(f"{bcolors.OKCYAN} Actual: ", price, end="")
                     else:
                         print(f"{bcolors.FAIL} \u2193", end="")
