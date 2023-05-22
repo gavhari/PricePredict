@@ -5,7 +5,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 import threading
 import pandas as pd
-import pandas_datareader.data as web
 import datetime
 from sklearn import linear_model
 from time import sleep
@@ -24,7 +23,7 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-symbol = "BTCUSD"
+symbol = "EURUSD"
 url = f"https://www.tradingview.com/symbols/{symbol}"
 
 driver = webdriver.Chrome('PricePredict/chromedriver')
@@ -47,7 +46,7 @@ except TimeoutException:
     print(u'\u2717' + "Status market atau harga pasar tidak ditemukan ")
     driver.quit()
     
-def getprice(sleep_time=5):
+def getprice(sleep_time=60):
     sleep(sleep_time)
     # quote = web.get_quote_yahoo(label)
     # price = quote["price"].values[0]
@@ -65,8 +64,8 @@ def train(input):
     joblib.dump(model, "modelLR.pkl")
     print("[Completed]")
     
-number_of_features = 5
-training_record_criterian = 5
+number_of_features = 7
+training_record_criterian = 7
 number_of_predictions = 3
 
 data = pd.DataFrame(columns=range(number_of_features))
@@ -85,11 +84,11 @@ while 1:
             print("")
             inputlist = predict_input.copy()
             for feature_value in inputlist[-(3):]:
-                print(f"{bcolors.WARNING} --> ", int(feature_value * 100) / 100, end=" ")
+                print(f"{bcolors.WARNING} --> ", float(feature_value * 100) / 100, end=" ")
             price = getprice(sleep_time=0)[0]
             for i in range(number_of_predictions):
                 pre_price = model.predict([inputlist[-(number_of_features - 1):]])
-                print(f"{bcolors.OKBLUE} --> ",int(pre_price[0] * 100)/100, end=" ")
+                print(f"{bcolors.OKBLUE} --> ","{:.5f}".format(float(pre_price[0] * 100)/100), end=" ")
                 if first_predict:
                     if pre_price[0] - inputlist[-1] > 0:
                         print(f"{bcolors.OKGREEN} \u2191", end="")
